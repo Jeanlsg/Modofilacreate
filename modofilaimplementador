@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Schema Avançado - Easypanel</title>
+    <style>
+        :root {
+            --bg-color: #1a1b41;
+            --card-bg: #222355;
+            --accent: #f2a900;
+            --text-color: #ffffff;
+            --input-bg: #2d2e66;
+            --border-color: #3e3f85;
+            --success: #00c851;
+            --warning: #ffbb33;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin-bottom: 25px;
+        }
+
+        .subtitle a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            background-color: rgba(242, 169, 0, 0.1);
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ddd;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Checkbox customizado */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: var(--input-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .checkbox-wrapper:hover {
+            border-color: var(--accent);
+        }
+
+        .checkbox-wrapper input {
+            margin-right: 12px;
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--accent);
+            color: #1a1b41;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(242, 169, 0, 0.3);
+        }
+
+        /* Output Area */
+        textarea {
+            width: 100%;
+            height: 350px;
+            background-color: #0d0e25;
+            color: #50fa7b;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            resize: vertical;
+            white-space: pre;
+            font-size: 13px;
+        }
+
+        .copy-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .btn-copy {
+            background-color: #2d2e66;
+            color: white;
+            border: 1px solid var(--accent);
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-copy:hover {
+            background-color: var(--accent);
+            color: #1a1b41;
+        }
+
+        /* Instruction Blocks */
+        .instruction-box {
+            background: rgba(0,0,0,0.2);
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        .instruction-box h3 {
+            margin-top: 0;
+            color: var(--accent);
+        }
+
+        .code-block {
+            background: #111;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+            border: 1px solid #333;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .code-block:hover:after {
+            content: "Clique para copiar";
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #aaa;
+            font-size: 10px;
+        }
+
+        .info-tag {
+            background-color: #3e3f85;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .warning-text {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        /* Dynamic Status */
+        .status-ok {
+            color: var(--success);
+            font-weight: bold;
+        }
+        .status-warn {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 650px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Easypanel Schema Builder</h1>
+        <p class="subtitle">Ferramentas de geração: <a href="https://acte.ltd/utils/randomkeygen" target="_blank">Random Key Generator</a></p>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('gerador')">🛠️ Gerador JSON</button>
+            <button class="tab-btn" onclick="openTab('instrucoes')">📦 Instalação Pós-Deploy</button>
+            <button class="tab-btn" onclick="openTab('migracao')">🔄 Migração p/ Modo Fila</button>
+        </div>
+
+        <!-- TAB 1: GERADOR -->
+        <div id="gerador" class="tab-content active">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Nome do Projeto (Minúsculas, sem espaços)</label>
+                    <input type="text" id="projectName" placeholder="ex: skinplace" value="skinplace" onkeyup="updateInstructionsPreview()">
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Domínio Principal (Sem https://)</label>
+                    <input type="text" id="domain" placeholder="ex: seudominio.com" value="uf27ma.easypanel.host">
+                </div>
+
+                <!-- Checkbox Evolution -->
+                <div class="form-group checkbox-wrapper">
+                    <label style="margin:0; display:flex; align-items:center; width:100%; cursor:pointer;">
+                        <input type="checkbox" id="includeEvolution" checked onchange="toggleEvoFields(); updateInstructionsPreview()">
+                        <span><strong>Incluir Evolution API?</strong> (API Whatsapp)</span>
+                    </label>
+                </div>
+
+                <!-- Checkbox Portainer -->
+                <div class="form-group checkbox-wrapper">
+                    <label style="margin:0; display:flex; align-items:center; width:100%; cursor:pointer;">
+                        <input type="checkbox" id="includePortainer">
+                        <span><strong>Incluir Portainer?</strong> (Gerenciador Docker)</span>
+                    </label>
+                </div>
+
+                <div class="form-group" id="evoKeyGroup">
+                    <label>Evolution API Key</label>
+                    <input type="text" id="evoKey" placeholder="Deixe vazio para gerar auto">
+                </div>
+
+                <div class="form-group">
+                    <label>N8N Encryption Key (COLE A ANTIGA AQUI PARA MIGRAR)</label>
+                    <input type="text" id="n8nKey" placeholder="Cole sua chave antiga aqui para preservar as credenciais">
+                </div>
+
+                <div class="form-group">
+                    <label>Redis Password</label>
+                    <input type="text" id="redisKey" placeholder="Deixe vazio para gerar auto">
+                </div>
+
+                <div class="form-group">
+                    <label>Postgres Password</label>
+                    <input type="text" id="pgKey" placeholder="Deixe vazio para gerar auto">
+                </div>
+            </div>
+
+            <button class="btn-action" onclick="generateJSON()">Gerar Configuração JSON</button>
+
+            <textarea id="output" readonly placeholder="Preencha os dados e clique em Gerar para ver o JSON..."></textarea>
+            
+            <div class="copy-bar">
+                <button class="btn-copy" onclick="copyToClipboard()">Copiar JSON</button>
+            </div>
+        </div>
+
+        <!-- TAB 2: INSTRUÇÕES DE INSTALAÇÃO -->
+        <div id="instrucoes" class="tab-content">
+            <div class="instruction-box">
+                <h3>🚀 1. Deploy no Easypanel</h3>
+                <ol>
+                    <li>Crie um projeto no Easypanel.</li>
+                    <li>Vá em <strong>"Project Settings"</strong> (ícone de engrenagem).</li>
+                    <li>Clique na aba <strong>"Schema"</strong>.</li>
+                    <li>Cole o JSON gerado e clique em "Save" ou "Apply".</li>
+                </ol>
+            </div>
+
+            <div class="instruction-box" id="db-instruction-box">
+                <h3 id="db-status-title">⏳ Status do Banco de Dados</h3>
+                <div id="db-instructions-content">
+                    <!-- Conteúdo dinâmico será injetado aqui -->
+                    <p>Gere o JSON primeiro para ver as instruções específicas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MIGRAÇÃO / MODO FILA -->
+        <div id="migracao" class="tab-content">
+            <div class="instruction-box">
+                <h3>🔄 Migração Profissional (Via VPS/CLI)</h3>
+                <p>Para migrar de SQLite para Postgres e <strong>manter suas credenciais salvas</strong>, siga este procedimento.</p>
+            </div>
+
+            <div class="instruction-box">
+                <h3>Passo 1: Resgatar a Chave de Encriptação (Obrigatório)</h3>
+                <p>1. Acesse seu n8n antigo (verifique as variáveis de ambiente).</p>
+                <p>2. Copie o valor da variável: <code>N8N_ENCRYPTION_KEY</code>.</p>
+                <p>3. <strong>Cole essa chave</strong> no campo "N8N Encryption Key" deste gerador.</p>
+            </div>
+
+            <div class="instruction-box">
+                <h3>Passo 2: Backup e Restore</h3>
+                <p>Use os comandos abaixo no terminal da VPS para exportar do antigo e importar no novo.</p>
+                
+                <div class="code-block" onclick="copyCommand(this)">
+# EXPORTAR (No container antigo)
+docker exec -it ID_ANTIGO n8n export:workflow --all --output=/home/node/w.json
+docker exec -it ID_ANTIGO n8n export:credentials --all --output=/home/node/c.json
+docker cp ID_ANTIGO:/home/node/w.json ./w.json
+docker cp ID_ANTIGO:/home/node/c.json ./c.json
+
+# IMPORTAR (No novo container n8n_editor)
+docker cp ./w.json ID_NOVO_EDITOR:/home/node/w.json
+docker cp ./c.json ID_NOVO_EDITOR:/home/node/c.json
+docker exec -it ID_NOVO_EDITOR n8n import:workflow --input=/home/node/w.json
+docker exec -it ID_NOVO_EDITOR n8n import:credentials --input=/home/node/c.json
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            updateInstructionsPreview();
+        });
+
+        function openTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            btns.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            const clickedBtn = Array.from(btns).find(btn => btn.getAttribute('onclick').includes(tabName));
+            if(clickedBtn) clickedBtn.classList.add('active');
+        }
+
+        function toggleEvoFields() {
+            const isChecked = document.getElementById('includeEvolution').checked;
+            document.getElementById('evoKeyGroup').style.display = isChecked ? 'block' : 'none';
+        }
+
+        function updateInstructionsPreview() {
+            const includeEvolution = document.getElementById('includeEvolution').checked;
+            const contentDiv = document.getElementById('db-instructions-content');
+            const title = document.getElementById('db-status-title');
+
+            if (!includeEvolution) {
+                // Caso simples: Apenas N8N
+                title.innerHTML = "✅ Banco de Dados Automático";
+                title.style.color = "#00c851";
+                contentDiv.innerHTML = `
+                    <p class="status-ok">Boas notícias! O banco de dados 'n8n' será criado automaticamente pelo JSON.</p>
+                    <p>Não é necessário rodar nenhum comando manual no console do Postgres para o n8n funcionar.</p>
+                `;
+            } else {
+                // Caso complexo: N8N + Evolution
+                title.innerHTML = "⚠️ Ação Manual Necessária (Apenas Evolution)";
+                title.style.color = "#ffbb33";
+                contentDiv.innerHTML = `
+                    <p>O banco do <strong>n8n</strong> será criado automaticamente (configurado via POSTGRES_DB).</p>
+                    <p class="warning-text">PORÉM, para a Evolution API funcionar, você precisa criar o banco dela manualmente:</p>
+                    
+                    <ol>
+                        <li>Clique no serviço <strong>postgres</strong> > aba <strong>Console</strong>.</li>
+                        <li>Cole o comando abaixo:</li>
+                    </ol>
+                    
+                    <div class="code-block" onclick="copyCommand(this)">
+psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
+                    </div>
+                    
+                    <p style="margin-top:10px">Depois disso, reinicie o serviço da Evolution.</p>
+                `;
+            }
+        }
+
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function generateJSON() {
+            // Inputs
+            let project = document.getElementById('projectName').value.trim() || 'skinplace';
+            let domain = document.getElementById('domain').value.trim() || 'easypanel.host';
+            let includePortainer = document.getElementById('includePortainer').checked;
+            let includeEvolution = document.getElementById('includeEvolution').checked;
+            
+            // Auto-fill Keys
+            if(includeEvolution && !document.getElementById('evoKey').value) document.getElementById('evoKey').value = generateRandomString(32);
+            if(!document.getElementById('n8nKey').value) document.getElementById('n8nKey').value = 'n8n_' + generateRandomString(24);
+            if(!document.getElementById('redisKey').value) document.getElementById('redisKey').value = 'redis_' + generateRandomString(24);
+            if(!document.getElementById('pgKey').value) document.getElementById('pgKey').value = 'postgres_' + generateRandomString(24);
+
+            let evoKey = document.getElementById('evoKey').value;
+            let n8nKey = document.getElementById('n8nKey').value;
+            let redisKey = document.getElementById('redisKey').value;
+            let pgKey = document.getElementById('pgKey').value;
+
+            // Base Services Array
+            let services = [];
+
+            // 1. Evolution API (Condicional)
+            if (includeEvolution) {
+                services.push({
+                    "type": "app",
+                    "data": {
+                        "projectName": project,
+                        "serviceName": "evolution",
+                        "source": { "type": "image", "image": "evoapicloud/evolution-api:v2.3.0" },
+                        "env": `SERVER_URL=https://${project}-evolution.${domain}\nDEL_INSTANCE=false\nDEL_TEMP_INSTANCES=false\nPROVIDER_ENABLED=false\nPROVIDER_HOST=127.0.0.1\nPROVIDER_PORT=5656\nPROVIDER_PREFIX=evolution-app\nDATABASE_ENABLED=true\nDATABASE_PROVIDER=postgresql\nDATABASE_CONNECTION_URI=postgres://postgres:${pgKey}@${project}_postgres:5432/evolution-app\nDATABASE_CONNECTION_CLIENT_NAME=evolution-app\nSQS_ENABLED=false\nSQS_ACCESS_KEY_ID=\nSQS_SECRET_ACCESS_KEY=\nSQS_ACCOUNT_ID=\nSQS_REGION=\nWEBSOCKET_ENABLED=false\nWEBSOCKET_GLOBAL_EVENTS=false\nWA_BUSINESS_TOKEN_WEBHOOK=evolution\nWA_BUSINESS_URL=https://graph.facebook.com\nWA_BUSINESS_VERSION=v20.0\nWA_BUSINESS_LANGUAGE=pt_BR\nWEBHOOK_GLOBAL_URL=\nWEBHOOK_GLOBAL_ENABLED=false\nWEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false\nWEBHOOK_EVENTS_APPLICATION_STARTUP=true\nWEBHOOK_EVENTS_QRCODE_UPDATED=true\nWEBHOOK_EVENTS_MESSAGES_SET=false\nWEBHOOK_EVENTS_MESSAGES_UPSERT=false\nWEBHOOK_EVENTS_MESSAGES_EDITED=false\nWEBHOOK_EVENTS_MESSAGES_UPDATE=false\nWEBHOOK_EVENTS_MESSAGES_DELETE=false\nWEBHOOK_EVENTS_SEND_MESSAGE=false\nWEBHOOK_EVENTS_CONTACTS_SET=false\nWEBHOOK_EVENTS_CONTACTS_UPSERT=false\nWEBHOOK_EVENTS_CONTACTS_UPDATE=false\nWEBHOOK_EVENTS_PRESENCE_UPDATE=false\nWEBHOOK_EVENTS_CHATS_SET=false\nWEBHOOK_EVENTS_CHATS_UPSERT=false\nWEBHOOK_EVENTS_CHATS_UPDATE=false\nWEBHOOK_EVENTS_CHATS_DELETE=false\nWEBHOOK_EVENTS_GROUPS_UPSERT=false\nWEBHOOK_EVENTS_GROUPS_UPDATE=false\nWEBHOOK_EVENTS_GROUP_PARTICIPANTS_UPDATE=false\nWEBHOOK_EVENTS_CONNECTION_UPDATE=true\nWEBHOOK_EVENTS_LABELS_EDIT=false\nWEBHOOK_EVENTS_LABELS_ASSOCIATION=false\nWEBHOOK_EVENTS_CALL=false\nWEBHOOK_EVENTS_TYPEBOT_START=false\nWEBHOOK_EVENTS_TYPEBOT_CHANGE_STATUS=false\nWEBHOOK_EVENTS_ERRORS=false\nWEBHOOK_EVENTS_ERRORS_WEBHOOK=\nCONFIG_SESSION_PHONE_CLIENT=chrome\nCONFIG_SESSION_PHONE_NAME=Chrome\nQRCODE_LIMIT=2\nQRCODE_COLOR=#000000\nOPENAI_ENABLED=true\nDIFY_ENABLED=true\nTYPEBOT_ENABLED=false\nTYPEBOT_API_VERSION=latest\nCHATWOOT_ENABLED=false\nCHATWOOT_MESSAGE_READ=true\nCHATWOOT_IMPORT_DATABASE_CONNECTION_URI=postgresql://[USUARIO]:[SENHA]@[HOST]:5432/[CHATWOPOT_DATABASE]?sslmode=disable\nCHATWOOT_IMPORT_PLACEHOLDER_MEDIA_MESSAGE=true\nCACHE_REDIS_ENABLED=true\nCACHE_REDIS_URI=redis://default:${redisKey}@${project}_redis:6379/5\nCACHE_REDIS_PREFIX_KEY=evolution-app\nCACHE_REDIS_SAVE_INSTANCES=false\nCACHE_LOCAL_ENABLED=false\nS3_ENABLED=false\nS3_ACCESS_KEY=\nS3_SECRET_KEY=\nS3_BUCKET=evolution\nS3_PORT=443\nS3_ENDPOINT=\nS3_USE_SSL=true\nAUTHENTICATION_API_KEY=${evoKey}\nAUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true\nLANGUAGE=pt-BR`,
+                        "deploy": { "replicas": 1, "command": null, "zeroDowntime": true },
+                        "domains": [
+                        { "host": `${project}-evolution.${domain}`, "https": true, "port": 8080, "path": "/", "wildcard": false, "internalProtocol": "http" }
+                        ]
+                    }
+                });
+            }
+
+            // 2. N8N Editor
+            services.push({
+                "type": "app",
+                "data": {
+                    "projectName": project,
+                    "serviceName": "n8n_editor",
+                    "source": { "type": "image", "image": "n8nio/n8n:latest" },
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
+                    "deploy": { "replicas": 1, "command": "n8n start", "zeroDowntime": true },
+                    "domains": [
+                      { "host": `${project}-n8n-editor.${domain}`, "https": true, "port": 5678, "path": "/", "wildcard": false, "internalProtocol": "http" }
+                    ]
+                }
+            });
+
+            // 3. N8N Webhook
+            services.push({
+                "type": "app",
+                "data": {
+                    "projectName": project,
+                    "serviceName": "n8n_webhook",
+                    "source": { "type": "image", "image": "n8nio/n8n:latest" },
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
+                    "deploy": { "replicas": 1, "command": "n8n webhook", "zeroDowntime": true },
+                    "domains": [
+                      { "host": `${project}-n8n-webhook.${domain}`, "https": true, "port": 5678, "path": "/", "wildcard": false, "internalProtocol": "http" }
+                    ]
+                }
+            });
+
+            // 4. N8N Worker
+            services.push({
+                "type": "app",
+                "data": {
+                    "projectName": project,
+                    "serviceName": "n8n_worker",
+                    "source": { "type": "image", "image": "n8nio/n8n:latest" },
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
+                    "deploy": { "replicas": 1, "command": "n8n worker --concurrency=10", "zeroDowntime": true },
+                    "domains": []
+                }
+            });
+
+            // 5. Postgres (MODIFICADO: ADD POSTGRES_DB=n8n)
+            services.push({
+                "type": "postgres",
+                "data": { 
+                    "projectName": project, 
+                    "serviceName": "postgres", 
+                    "image": "postgres:17", 
+                    "password": pgKey,
+                    // AUTO-CREATE N8N DB
+                    "env": "POSTGRES_DB=n8n"
+                }
+            });
+
+            // 6. Redis
+            services.push({
+                "type": "redis",
+                "data": { "projectName": project, "serviceName": "redis", "image": "redis:7", "password": redisKey }
+            });
+
+            // 7. Portainer (Opcional)
+            if (includePortainer) {
+                services.push({
+                    "type": "app",
+                    "data": {
+                        "projectName": project,
+                        "serviceName": "portainer",
+                        "source": { "type": "image", "image": "portainer/portainer-ce:latest" },
+                        "deploy": { "replicas": 1, "command": null, "zeroDowntime": true },
+                        "domains": [
+                            { "host": `portainer.${domain}`, "https": true, "port": 9000, "path": "/", "middlewares": [], "certificateResolver": "", "wildcard": false, "internalProtocol": "http" }
+                        ],
+                        "mounts": [
+                            { "type": "bind", "hostPath": "/var/run/docker.sock", "mountPath": "/var/run/docker.sock" },
+                            { "type": "volume", "name": "portainer_data", "mountPath": "/data" }
+                        ]
+                    }
+                });
+            }
+
+            const jsonStructure = { "services": services };
+            const output = JSON.stringify(jsonStructure, null, 2);
+            document.getElementById('output').value = output;
+            updateInstructionsPreview();
+        }
+
+        function copyToClipboard() {
+            try {
+                const copyText = document.getElementById("output");
+                copyText.select();
+                const successful = document.execCommand("copy");
+                if (successful) {
+                    alert("JSON copiado com sucesso!");
+                } else {
+                    alert("Não foi possível copiar automaticamente.");
+                }
+            } catch (err) {
+                console.error("Erro ao copiar JSON:", err);
+                alert("Erro ao copiar JSON. Tente selecionar e copiar manualmente.");
+            }
+        }
+
+        function copyCommand(element) {
+            const text = element.innerText;
+            
+            // Create temporary element
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Ensure it's not visible but part of DOM
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    alert("Comando SQL copiado!");
+                } else {
+                    alert("Não foi possível copiar automaticamente.");
+                }
+            } catch (err) {
+                console.error('Erro ao copiar:', err);
+                alert("Erro ao copiar. Por favor, selecione e copie manualmente.");
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
