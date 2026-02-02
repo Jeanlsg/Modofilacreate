@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,9 @@
             --border-color: #3e3f85;
             --success: #00c851;
             --warning: #ffbb33;
+            --error: #ff4444;
+            --info: #2196F3;
+            --dns: #9c27b0;
         }
 
         body {
@@ -304,12 +307,12 @@
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Nome do Projeto (Minúsculas, sem espaços)</label>
-                    <input type="text" id="projectName" placeholder="ex: skinplace" value="skinplace" onkeyup="updateInstructionsPreview()">
+                    <input type="text" id="projectName" placeholder="ex: skinplace" value="agentes-de-ia" onkeyup="updateInstructionsPreview(); updateMigrationCommands()">
                 </div>
 
                 <div class="form-group full-width">
                     <label>Domínio Principal (Sem https://)</label>
-                    <input type="text" id="domain" placeholder="ex: seudominio.com" value="uf27ma.easypanel.host">
+                    <input type="text" id="domain" placeholder="ex: seudominio.com" value="easypanel.jeanlsg.site">
                 </div>
 
                 <!-- Checkbox Evolution -->
@@ -377,39 +380,116 @@
                     <p>Gere o JSON primeiro para ver as instruções específicas.</p>
                 </div>
             </div>
+
+            <!-- BLOCO DE ERRO DNS (NOVO) -->
+            <div class="instruction-box" style="border-left-color: var(--dns);">
+                <h3 style="color: var(--dns);">🌐 Erro: "DNS_PROBE_FINISHED_NXDOMAIN"</h3>
+                <p>Se você vê este erro no navegador, o N8N está rodando, mas o domínio não aponta para o servidor.</p>
+                <p><strong>Solução:</strong> Vá ao seu provedor de domínio (Cloudflare, etc.) e verifique se existe um registro Wildcard:</p>
+                <ul>
+                    <li><strong>Tipo:</strong> A</li>
+                    <li><strong>Nome:</strong> *.easypanel (ou apenas * se for direto no domínio raiz)</li>
+                    <li><strong>Valor:</strong> IP da sua VPS</li>
+                </ul>
+            </div>
+
+            <!-- BLOCO DE SOLUÇÃO DE PROBLEMAS -->
+            <div class="instruction-box" style="border-left-color: var(--error);">
+                <h3 style="color: var(--error);">🆘 Erro: "Received SIGTERM / Loop de Reinício"</h3>
+                <p>Se o n8n diz "Ready" mas reinicia sozinho logo depois, o Health Check está falhando.</p>
+                <p><strong>A Solução já está incluída:</strong> O JSON gerado agora inclui uma configuração de <code>healthCheck</code> apontando para <code>/healthz</code>.</p>
+            </div>
         </div>
 
         <!-- TAB 3: MIGRAÇÃO / MODO FILA -->
         <div id="migracao" class="tab-content">
-            <div class="instruction-box">
-                <h3>🔄 Migração Profissional (Via VPS/CLI)</h3>
-                <p>Para migrar de SQLite para Postgres e <strong>manter suas credenciais salvas</strong>, siga este procedimento.</p>
-            </div>
-
-            <div class="instruction-box">
-                <h3>Passo 1: Resgatar a Chave de Encriptação (Obrigatório)</h3>
-                <p>1. Acesse seu n8n antigo (verifique as variáveis de ambiente).</p>
-                <p>2. Copie o valor da variável: <code>N8N_ENCRYPTION_KEY</code>.</p>
-                <p>3. <strong>Cole essa chave</strong> no campo "N8N Encryption Key" deste gerador.</p>
-            </div>
-
-            <div class="instruction-box">
-                <h3>Passo 2: Backup e Restore</h3>
-                <p>Use os comandos abaixo no terminal da VPS para exportar do antigo e importar no novo.</p>
+            
+            <!-- CONFIGURAÇÃO DA MIGRAÇÃO (NOVO BLOCO) -->
+            <div class="instruction-box" style="border-left-color: #2196F3; background: rgba(33, 150, 243, 0.1);">
+                <h3 style="color: #2196F3;">🛠️ Configuração dos IDs (Preencha Aqui)</h3>
+                <p>Use os comandos abaixo para encontrar os IDs e cole nos campos. Os comandos de migração serão atualizados automaticamente.</p>
                 
-                <div class="code-block" onclick="copyCommand(this)">
-# EXPORTAR (No container antigo)
-docker exec -it ID_ANTIGO n8n export:workflow --all --output=/home/node/w.json
-docker exec -it ID_ANTIGO n8n export:credentials --all --output=/home/node/c.json
-docker cp ID_ANTIGO:/home/node/w.json ./w.json
-docker cp ID_ANTIGO:/home/node/c.json ./c.json
-
-# IMPORTAR (No novo container n8n_editor)
-docker cp ./w.json ID_NOVO_EDITOR:/home/node/w.json
-docker cp ./c.json ID_NOVO_EDITOR:/home/node/c.json
-docker exec -it ID_NOVO_EDITOR n8n import:workflow --input=/home/node/w.json
-docker exec -it ID_NOVO_EDITOR n8n import:credentials --input=/home/node/c.json
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em;">
+                    <strong>Como obter os IDs? Copie e rode no terminal:</strong><br><br>
+                    1. N8N Antigo: <span class="code-block" style="display:inline; padding: 2px 5px;" onclick="copyCommand(this)">docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}"</span><br>
+                    2. Novo Postgres: <span class="code-block" style="display:inline; padding: 2px 5px;" onclick="copyCommand(this)">docker ps | grep postgres</span><br>
+                    3. Novo Editor: <span class="code-block" style="display:inline; padding: 2px 5px;" onclick="copyCommand(this)">docker ps | grep n8n_editor</span>
                 </div>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px;">
+                    <div class="form-group">
+                        <label>ID do N8N Antigo</label>
+                        <input type="text" id="mig_old_id" placeholder="Ex: a1b2c3d4e5" onkeyup="updateMigrationCommands()">
+                    </div>
+                    <div class="form-group">
+                        <label>ID do Novo Postgres</label>
+                        <input type="text" id="mig_pg_id" placeholder="Ex: fb0682c16ece" onkeyup="updateMigrationCommands()">
+                    </div>
+                    <div class="form-group">
+                        <label>ID do Novo N8N Editor</label>
+                        <input type="text" id="mig_new_id" placeholder="Ex: 9cefc1742bc6" onkeyup="updateMigrationCommands()">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do Arquivo SQL</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="mig_sql_path" value="/root" placeholder="/root" style="width: 30%;" onkeyup="updateMigrationCommands()">
+                            <input type="text" id="mig_sql_file" value="backup_n8n.sql" placeholder="backup.sql" style="width: 70%;" onkeyup="updateMigrationCommands()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instruction-box">
+                <h3>🔄 Restauro Limpo de Backup SQL (.sql)</h3>
+                <p>Se o seu login não funcionou, é porque o n8n criou tabelas vazias antes do import. <strong>Execute os passos abaixo na ordem exata:</strong></p>
+            </div>
+
+            <div class="instruction-box" style="border-left-color: var(--accent);">
+                <h3 style="color: var(--accent);">1. Copiar Arquivo para Postgres</h3>
+                <div class="code-block" id="code_sql_copy" onclick="copyCommand(this)">docker cp /root/backup_n8n.sql ID_POSTGRES:/tmp/backup_n8n.sql</div>
+            </div>
+
+            <div class="instruction-box" style="border-left-color: var(--error);">
+                <h3 style="color: var(--error);">2. Parar N8N e Limpar Banco (CRÍTICO)</h3>
+                <p>Isso remove o banco vazio criado automaticamente para que o backup possa ser restaurado corretamente.</p>
+                
+                <p><strong>2.1 Parar o Editor do N8N:</strong></p>
+                <div class="code-block" id="code_stop_n8n" onclick="copyCommand(this)">docker stop ID_NOVO_EDITOR</div>
+
+                <p><strong>2.2 Apagar tabelas existentes (Reset):</strong></p>
+                <div class="code-block" id="code_reset_db" onclick="copyCommand(this)">docker exec -it ID_POSTGRES psql -U postgres -d agentes-de-ia -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"</div>
+            </div>
+
+            <div class="instruction-box" style="border-left-color: var(--success);">
+                <h3 style="color: var(--success);">3. Importar e Reiniciar</h3>
+                
+                <p><strong>3.1 Importar o SQL (Agora em banco limpo):</strong></p>
+                <div class="code-block" id="code_sql_import" onclick="copyCommand(this)">docker exec -it ID_POSTGRES psql -U postgres -d agentes-de-ia -f /tmp/backup_n8n.sql</div>
+
+                <p><strong>3.2 Iniciar o N8N:</strong></p>
+                <div class="code-block" id="code_start_n8n" onclick="copyCommand(this)">docker start ID_NOVO_EDITOR</div>
+                
+                <p class="status-ok" style="margin-top: 15px;">Agora sim! O seu login antigo deve funcionar.</p>
+            </div>
+
+            <!-- SECÇÃO LEGADA JSON (SEPARADA POR COMANDOS) -->
+            <div class="instruction-box" style="opacity:0.8; margin-top:30px;">
+                <h3>Outros Métodos: Exportar/Importar JSON</h3>
+                
+                <p><strong>1. Resgatar Chave (Se necessário):</strong></p>
+                <div class="code-block" id="code_key_discovery" onclick="copyCommand(this)">docker exec ID_ANTIGO cat /home/node/.n8n/config</div>
+
+                <p><strong>2. Exportar (Antigo):</strong></p>
+                <div class="code-block" id="code_json_export_w" onclick="copyCommand(this)">docker exec -it ID_ANTIGO n8n export:workflow --all --output=/home/node/w.json</div>
+                <div class="code-block" id="code_json_export_c" onclick="copyCommand(this)">docker exec -it ID_ANTIGO n8n export:credentials --all --output=/home/node/c.json</div>
+                <div class="code-block" id="code_json_cp_out_w" onclick="copyCommand(this)">docker cp ID_ANTIGO:/home/node/w.json ./w.json</div>
+                <div class="code-block" id="code_json_cp_out_c" onclick="copyCommand(this)">docker cp ID_ANTIGO:/home/node/c.json ./c.json</div>
+
+                <p><strong>3. Importar (Novo):</strong></p>
+                <div class="code-block" id="code_json_cp_in_w" onclick="copyCommand(this)">docker cp ./w.json ID_NOVO_EDITOR:/home/node/w.json</div>
+                <div class="code-block" id="code_json_cp_in_c" onclick="copyCommand(this)">docker cp ./c.json ID_NOVO_EDITOR:/home/node/c.json</div>
+                <div class="code-block" id="code_json_import_w" onclick="copyCommand(this)">docker exec -it ID_NOVO_EDITOR n8n import:workflow --input=/home/node/w.json</div>
+                <div class="code-block" id="code_json_import_c" onclick="copyCommand(this)">docker exec -it ID_NOVO_EDITOR n8n import:credentials --input=/home/node/c.json</div>
             </div>
         </div>
     </div>
@@ -418,6 +498,7 @@ docker exec -it ID_NOVO_EDITOR n8n import:credentials --input=/home/node/c.json
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
             updateInstructionsPreview();
+            updateMigrationCommands();
         });
 
         function openTab(tabName) {
@@ -438,38 +519,81 @@ docker exec -it ID_NOVO_EDITOR n8n import:credentials --input=/home/node/c.json
         }
 
         function updateInstructionsPreview() {
-            const includeEvolution = document.getElementById('includeEvolution').checked;
             const contentDiv = document.getElementById('db-instructions-content');
             const title = document.getElementById('db-status-title');
+            
+            // Agora tudo é automático!
+            title.innerHTML = "✅ Banco de Dados 100% Automático";
+            title.style.color = "#00c851";
+            contentDiv.innerHTML = `
+                <p class="status-ok">Configuração Otimizada!</p>
+                <p>O Postgres será criado com um banco de dados com o <strong>mesmo nome do projeto</strong>.</p>
+                <p>Tanto o N8N quanto a Evolution API usarão este mesmo banco.</p>
+                <p><strong>Não é necessário rodar nenhum comando manual.</strong> Apenas faça o deploy e aguarde.</p>
+            `;
+        }
 
-            if (!includeEvolution) {
-                // Caso simples: Apenas N8N
-                title.innerHTML = "✅ Banco de Dados Automático";
-                title.style.color = "#00c851";
-                contentDiv.innerHTML = `
-                    <p class="status-ok">Boas notícias! O banco de dados 'n8n' será criado automaticamente pelo JSON.</p>
-                    <p>Não é necessário rodar nenhum comando manual no console do Postgres para o n8n funcionar.</p>
-                `;
-            } else {
-                // Caso complexo: N8N + Evolution
-                title.innerHTML = "⚠️ Ação Manual Necessária (Apenas Evolution)";
-                title.style.color = "#ffbb33";
-                contentDiv.innerHTML = `
-                    <p>O banco do <strong>n8n</strong> será criado automaticamente (configurado via POSTGRES_DB).</p>
-                    <p class="warning-text">PORÉM, para a Evolution API funcionar, você precisa criar o banco dela manualmente:</p>
-                    
-                    <ol>
-                        <li>Clique no serviço <strong>postgres</strong> > aba <strong>Console</strong>.</li>
-                        <li>Cole o comando abaixo:</li>
-                    </ol>
-                    
-                    <div class="code-block" onclick="copyCommand(this)">
-psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
-                    </div>
-                    
-                    <p style="margin-top:10px">Depois disso, reinicie o serviço da Evolution.</p>
-                `;
-            }
+        function updateMigrationCommands() {
+            // Get Inputs
+            const project = document.getElementById('projectName').value.trim() || 'agentes-de-ia';
+            
+            const oldId = document.getElementById('mig_old_id').value.trim() || 'ID_ANTIGO';
+            const pgId = document.getElementById('mig_pg_id').value.trim() || 'ID_POSTGRES';
+            const newId = document.getElementById('mig_new_id').value.trim() || 'ID_NOVO_EDITOR';
+            const sqlFile = document.getElementById('mig_sql_file').value.trim() || 'backup_n8n.sql';
+            let sqlPath = document.getElementById('mig_sql_path').value.trim() || '/root';
+            // Remove trailing slash if present
+            if(sqlPath.endsWith('/')) sqlPath = sqlPath.slice(0, -1);
+
+            // Update Key Discovery
+            const keyDiscovery = document.getElementById('code_key_discovery');
+            if(keyDiscovery) keyDiscovery.innerText = `docker exec ${oldId} cat /home/node/.n8n/config`;
+
+            // Update SQL Commands
+            const sqlCopy = document.getElementById('code_sql_copy');
+            if(sqlCopy) sqlCopy.innerText = `docker cp ${sqlPath}/${sqlFile} ${pgId}:/tmp/${sqlFile}`;
+            
+            // Stop N8N
+            const stopN8N = document.getElementById('code_stop_n8n');
+            if(stopN8N) stopN8N.innerText = `docker stop ${newId}`;
+
+            // Reset DB
+            const resetDb = document.getElementById('code_reset_db');
+            if(resetDb) resetDb.innerText = `docker exec -it ${pgId} psql -U postgres -d ${project} -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`;
+
+            // Import SQL
+            const sqlImport = document.getElementById('code_sql_import');
+            if(sqlImport) sqlImport.innerText = `docker exec -it ${pgId} psql -U postgres -d ${project} -f /tmp/${sqlFile}`;
+
+            // Start N8N
+            const startN8N = document.getElementById('code_start_n8n');
+            if(startN8N) startN8N.innerText = `docker start ${newId}`;
+
+            // Update JSON Export (Old)
+            const jsonExpW = document.getElementById('code_json_export_w');
+            if(jsonExpW) jsonExpW.innerText = `docker exec -it ${oldId} n8n export:workflow --all --output=/home/node/w.json`;
+            
+            const jsonExpC = document.getElementById('code_json_export_c');
+            if(jsonExpC) jsonExpC.innerText = `docker exec -it ${oldId} n8n export:credentials --all --output=/home/node/c.json`;
+            
+            const jsonCpOutW = document.getElementById('code_json_cp_out_w');
+            if(jsonCpOutW) jsonCpOutW.innerText = `docker cp ${oldId}:/home/node/w.json ./w.json`;
+            
+            const jsonCpOutC = document.getElementById('code_json_cp_out_c');
+            if(jsonCpOutC) jsonCpOutC.innerText = `docker cp ${oldId}:/home/node/c.json ./c.json`;
+
+            // Update JSON Import (New)
+            const jsonCpInW = document.getElementById('code_json_cp_in_w');
+            if(jsonCpInW) jsonCpInW.innerText = `docker cp ./w.json ${newId}:/home/node/w.json`;
+            
+            const jsonCpInC = document.getElementById('code_json_cp_in_c');
+            if(jsonCpInC) jsonCpInC.innerText = `docker cp ./c.json ${newId}:/home/node/c.json`;
+            
+            const jsonImpW = document.getElementById('code_json_import_w');
+            if(jsonImpW) jsonImpW.innerText = `docker exec -it ${newId} n8n import:workflow --input=/home/node/w.json`;
+            
+            const jsonImpC = document.getElementById('code_json_import_c');
+            if(jsonImpC) jsonImpC.innerText = `docker exec -it ${newId} n8n import:credentials --input=/home/node/c.json`;
         }
 
         function generateRandomString(length) {
@@ -510,7 +634,8 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
                         "projectName": project,
                         "serviceName": "evolution",
                         "source": { "type": "image", "image": "evoapicloud/evolution-api:v2.3.0" },
-                        "env": `SERVER_URL=https://${project}-evolution.${domain}\nDEL_INSTANCE=false\nDEL_TEMP_INSTANCES=false\nPROVIDER_ENABLED=false\nPROVIDER_HOST=127.0.0.1\nPROVIDER_PORT=5656\nPROVIDER_PREFIX=evolution-app\nDATABASE_ENABLED=true\nDATABASE_PROVIDER=postgresql\nDATABASE_CONNECTION_URI=postgres://postgres:${pgKey}@${project}_postgres:5432/evolution-app\nDATABASE_CONNECTION_CLIENT_NAME=evolution-app\nSQS_ENABLED=false\nSQS_ACCESS_KEY_ID=\nSQS_SECRET_ACCESS_KEY=\nSQS_ACCOUNT_ID=\nSQS_REGION=\nWEBSOCKET_ENABLED=false\nWEBSOCKET_GLOBAL_EVENTS=false\nWA_BUSINESS_TOKEN_WEBHOOK=evolution\nWA_BUSINESS_URL=https://graph.facebook.com\nWA_BUSINESS_VERSION=v20.0\nWA_BUSINESS_LANGUAGE=pt_BR\nWEBHOOK_GLOBAL_URL=\nWEBHOOK_GLOBAL_ENABLED=false\nWEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false\nWEBHOOK_EVENTS_APPLICATION_STARTUP=true\nWEBHOOK_EVENTS_QRCODE_UPDATED=true\nWEBHOOK_EVENTS_MESSAGES_SET=false\nWEBHOOK_EVENTS_MESSAGES_UPSERT=false\nWEBHOOK_EVENTS_MESSAGES_EDITED=false\nWEBHOOK_EVENTS_MESSAGES_UPDATE=false\nWEBHOOK_EVENTS_MESSAGES_DELETE=false\nWEBHOOK_EVENTS_SEND_MESSAGE=false\nWEBHOOK_EVENTS_CONTACTS_SET=false\nWEBHOOK_EVENTS_CONTACTS_UPSERT=false\nWEBHOOK_EVENTS_CONTACTS_UPDATE=false\nWEBHOOK_EVENTS_PRESENCE_UPDATE=false\nWEBHOOK_EVENTS_CHATS_SET=false\nWEBHOOK_EVENTS_CHATS_UPSERT=false\nWEBHOOK_EVENTS_CHATS_UPDATE=false\nWEBHOOK_EVENTS_CHATS_DELETE=false\nWEBHOOK_EVENTS_GROUPS_UPSERT=false\nWEBHOOK_EVENTS_GROUPS_UPDATE=false\nWEBHOOK_EVENTS_GROUP_PARTICIPANTS_UPDATE=false\nWEBHOOK_EVENTS_CONNECTION_UPDATE=true\nWEBHOOK_EVENTS_LABELS_EDIT=false\nWEBHOOK_EVENTS_LABELS_ASSOCIATION=false\nWEBHOOK_EVENTS_CALL=false\nWEBHOOK_EVENTS_TYPEBOT_START=false\nWEBHOOK_EVENTS_TYPEBOT_CHANGE_STATUS=false\nWEBHOOK_EVENTS_ERRORS=false\nWEBHOOK_EVENTS_ERRORS_WEBHOOK=\nCONFIG_SESSION_PHONE_CLIENT=chrome\nCONFIG_SESSION_PHONE_NAME=Chrome\nQRCODE_LIMIT=2\nQRCODE_COLOR=#000000\nOPENAI_ENABLED=true\nDIFY_ENABLED=true\nTYPEBOT_ENABLED=false\nTYPEBOT_API_VERSION=latest\nCHATWOOT_ENABLED=false\nCHATWOOT_MESSAGE_READ=true\nCHATWOOT_IMPORT_DATABASE_CONNECTION_URI=postgresql://[USUARIO]:[SENHA]@[HOST]:5432/[CHATWOPOT_DATABASE]?sslmode=disable\nCHATWOOT_IMPORT_PLACEHOLDER_MEDIA_MESSAGE=true\nCACHE_REDIS_ENABLED=true\nCACHE_REDIS_URI=redis://default:${redisKey}@${project}_redis:6379/5\nCACHE_REDIS_PREFIX_KEY=evolution-app\nCACHE_REDIS_SAVE_INSTANCES=false\nCACHE_LOCAL_ENABLED=false\nS3_ENABLED=false\nS3_ACCESS_KEY=\nS3_SECRET_KEY=\nS3_BUCKET=evolution\nS3_PORT=443\nS3_ENDPOINT=\nS3_USE_SSL=true\nAUTHENTICATION_API_KEY=${evoKey}\nAUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true\nLANGUAGE=pt-BR`,
+                        // MODIFICADO: Usa banco de dados = nome do projeto
+                        "env": `SERVER_URL=https://${project}-evolution.${domain}\nDEL_INSTANCE=false\nDEL_TEMP_INSTANCES=false\nPROVIDER_ENABLED=false\nPROVIDER_HOST=127.0.0.1\nPROVIDER_PORT=5656\nPROVIDER_PREFIX=evolution-app\nDATABASE_ENABLED=true\nDATABASE_PROVIDER=postgresql\nDATABASE_CONNECTION_URI=postgres://postgres:${pgKey}@postgres:5432/${project}\nDATABASE_CONNECTION_CLIENT_NAME=evolution-app\nSQS_ENABLED=false\nSQS_ACCESS_KEY_ID=\nSQS_SECRET_ACCESS_KEY=\nSQS_ACCOUNT_ID=\nSQS_REGION=\nWEBSOCKET_ENABLED=false\nWEBSOCKET_GLOBAL_EVENTS=false\nWA_BUSINESS_TOKEN_WEBHOOK=evolution\nWA_BUSINESS_URL=https://graph.facebook.com\nWA_BUSINESS_VERSION=v20.0\nWA_BUSINESS_LANGUAGE=pt_BR\nWEBHOOK_GLOBAL_URL=\nWEBHOOK_GLOBAL_ENABLED=false\nWEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false\nWEBHOOK_EVENTS_APPLICATION_STARTUP=true\nWEBHOOK_EVENTS_QRCODE_UPDATED=true\nWEBHOOK_EVENTS_MESSAGES_SET=false\nWEBHOOK_EVENTS_MESSAGES_UPSERT=false\nWEBHOOK_EVENTS_MESSAGES_EDITED=false\nWEBHOOK_EVENTS_MESSAGES_UPDATE=false\nWEBHOOK_EVENTS_MESSAGES_DELETE=false\nWEBHOOK_EVENTS_SEND_MESSAGE=false\nWEBHOOK_EVENTS_CONTACTS_SET=false\nWEBHOOK_EVENTS_CONTACTS_UPSERT=false\nWEBHOOK_EVENTS_CONTACTS_UPDATE=false\nWEBHOOK_EVENTS_PRESENCE_UPDATE=false\nWEBHOOK_EVENTS_CHATS_SET=false\nWEBHOOK_EVENTS_CHATS_UPSERT=false\nWEBHOOK_EVENTS_CHATS_UPDATE=false\nWEBHOOK_EVENTS_CHATS_DELETE=false\nWEBHOOK_EVENTS_GROUPS_UPSERT=false\nWEBHOOK_EVENTS_GROUPS_UPDATE=false\nWEBHOOK_EVENTS_GROUP_PARTICIPANTS_UPDATE=false\nWEBHOOK_EVENTS_CONNECTION_UPDATE=true\nWEBHOOK_EVENTS_LABELS_EDIT=false\nWEBHOOK_EVENTS_LABELS_ASSOCIATION=false\nWEBHOOK_EVENTS_CALL=false\nWEBHOOK_EVENTS_TYPEBOT_START=false\nWEBHOOK_EVENTS_TYPEBOT_CHANGE_STATUS=false\nWEBHOOK_EVENTS_ERRORS=false\nWEBHOOK_EVENTS_ERRORS_WEBHOOK=\nCONFIG_SESSION_PHONE_CLIENT=chrome\nCONFIG_SESSION_PHONE_NAME=Chrome\nQRCODE_LIMIT=2\nQRCODE_COLOR=#000000\nOPENAI_ENABLED=true\nDIFY_ENABLED=true\nTYPEBOT_ENABLED=false\nTYPEBOT_API_VERSION=latest\nCHATWOOT_ENABLED=false\nCHATWOOT_MESSAGE_READ=true\nCHATWOOT_IMPORT_DATABASE_CONNECTION_URI=postgresql://[USUARIO]:[SENHA]@[HOST]:5432/[CHATWOPOT_DATABASE]?sslmode=disable\nCHATWOOT_IMPORT_PLACEHOLDER_MEDIA_MESSAGE=true\nCACHE_REDIS_ENABLED=true\nCACHE_REDIS_URI=redis://default:${redisKey}@redis:6379/5\nCACHE_REDIS_PREFIX_KEY=evolution-app\nCACHE_REDIS_SAVE_INSTANCES=false\nCACHE_LOCAL_ENABLED=false\nS3_ENABLED=false\nS3_ACCESS_KEY=\nS3_SECRET_KEY=\nS3_BUCKET=evolution\nS3_PORT=443\nS3_ENDPOINT=\nS3_USE_SSL=true\nAUTHENTICATION_API_KEY=${evoKey}\nAUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true\nLANGUAGE=pt-BR`,
                         "deploy": { "replicas": 1, "command": null, "zeroDowntime": true },
                         "domains": [
                         { "host": `${project}-evolution.${domain}`, "https": true, "port": 8080, "path": "/", "wildcard": false, "internalProtocol": "http" }
@@ -526,8 +651,22 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
                     "projectName": project,
                     "serviceName": "n8n_editor",
                     "source": { "type": "image", "image": "n8nio/n8n:latest" },
-                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
-                    "deploy": { "replicas": 1, "command": "n8n start", "zeroDowntime": true },
+                    // MODIFICADO: Usa banco de dados = nome do projeto
+                    // MODIFICADO: Adicionado OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=postgres\nDB_POSTGRESDB_DATABASE=${project}\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true\nOFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true`,
+                    "deploy": { 
+                      "replicas": 1, 
+                      "command": "n8n start", 
+                      "zeroDowntime": true,
+                      "healthCheck": {
+                        "path": "/healthz",
+                        "port": 5678,
+                        "initialDelaySeconds": 10,
+                        "periodSeconds": 5,
+                        "timeoutSeconds": 5,
+                        "failureThreshold": 5
+                      }
+                    },
                     "domains": [
                       { "host": `${project}-n8n-editor.${domain}`, "https": true, "port": 5678, "path": "/", "wildcard": false, "internalProtocol": "http" }
                     ]
@@ -541,8 +680,21 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
                     "projectName": project,
                     "serviceName": "n8n_webhook",
                     "source": { "type": "image", "image": "n8nio/n8n:latest" },
-                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
-                    "deploy": { "replicas": 1, "command": "n8n webhook", "zeroDowntime": true },
+                    // MODIFICADO: Usa banco de dados = nome do projeto
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=postgres\nDB_POSTGRESDB_DATABASE=${project}\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
+                    "deploy": { 
+                      "replicas": 1, 
+                      "command": "n8n webhook", 
+                      "zeroDowntime": true,
+                      "healthCheck": {
+                        "path": "/healthz",
+                        "port": 5678,
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 5,
+                        "timeoutSeconds": 2,
+                        "failureThreshold": 3
+                      }
+                    },
                     "domains": [
                       { "host": `${project}-n8n-webhook.${domain}`, "https": true, "port": 5678, "path": "/", "wildcard": false, "internalProtocol": "http" }
                     ]
@@ -556,13 +708,14 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
                     "projectName": project,
                     "serviceName": "n8n_worker",
                     "source": { "type": "image", "image": "n8nio/n8n:latest" },
-                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=${project}_postgres\nDB_POSTGRESDB_DATABASE=n8n\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=${project}_redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
+                    // MODIFICADO: Usa banco de dados = nome do projeto
+                    "env": `DB_TYPE=postgresdb\nDB_POSTGRESDB_PORT=5432\nDB_POSTGRESDB_HOST=postgres\nDB_POSTGRESDB_DATABASE=${project}\nDB_POSTGRESDB_USER=postgres\nDB_POSTGRESDB_PASSWORD=${pgKey}\nN8N_ENCRYPTION_KEY=${n8nKey}\nN8N_HOST=${project}-n8n-editor.${domain}\nN8N_EDITOR_BASE_URL=https://${project}-n8n-editor.${domain}\nN8N_PROTOCOL=https\nNODE_ENV=production\nWEBHOOK_URL=https://${project}-n8n-webhook.${domain}\nEXECUTIONS_MODE=queue\nQUEUE_BULL_REDIS_HOST=redis\nQUEUE_BULL_REDIS_PASSWORD=${redisKey}\nQUEUE_BULL_REDIS_PORT=6379\nQUEUE_BULL_REDIS_DB=2\nNODE_FUNCTION_ALLOW_EXTERNAL=*\nEXECUTIONS_DATA_PRUNE=true\nEXECUTIONS_DATA_MAX_AGE=336\nGENERIC_TIMEZONE=America/Sao_Paulo\nN8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true`,
                     "deploy": { "replicas": 1, "command": "n8n worker --concurrency=10", "zeroDowntime": true },
                     "domains": []
                 }
             });
 
-            // 5. Postgres (MODIFICADO: ADD POSTGRES_DB=n8n)
+            // 5. Postgres (MODIFICADO: ADD POSTGRES_DB=${project})
             services.push({
                 "type": "postgres",
                 "data": { 
@@ -570,8 +723,8 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
                     "serviceName": "postgres", 
                     "image": "postgres:17", 
                     "password": pgKey,
-                    // AUTO-CREATE N8N DB
-                    "env": "POSTGRES_DB=n8n"
+                    // AUTO-CREATE PROJECT DB
+                    "env": `POSTGRES_DB=${project}`
                 }
             });
 
@@ -605,6 +758,7 @@ psql -U postgres -c "CREATE DATABASE \"evolution-app\";"
             const output = JSON.stringify(jsonStructure, null, 2);
             document.getElementById('output').value = output;
             updateInstructionsPreview();
+            updateMigrationCommands();
         }
 
         function copyToClipboard() {
